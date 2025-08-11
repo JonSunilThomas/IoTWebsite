@@ -1,0 +1,133 @@
+Module 3: Device & Configuration Management
+Overall Function:
+
+This module acts as the administrator's office for all physical devices registered in the system. Its core responsibility is to manage the entire lifecycle of a device entity—from its initial creation and configuration to how its data is interpreted and how it can be controlled. It provides the necessary API endpoints for the frontend to manage these aspects.
+Sub-Module 3.1: Device Provisioning Service
+Function:
+
+This sub-module handles the creation and retrieval of device records. It is the system's official registrar, responsible for giving each device a unique identity and storing its core properties.
+What Has to Be Done:
+
+    3.1.1: Device Model & Schema:
+
+        Using Mongoose, define a comprehensive deviceSchema. This is a critical schema that will be referenced by other modules.
+
+        Fields:
+
+            deviceId: Type String, required, unique.
+
+            deviceType: Type String, required.
+
+            group: Type mongoose.Schema.Types.ObjectId, ref: 'Group'.
+
+            user: Type mongoose.Schema.Types.ObjectId, ref: 'User', required.
+
+            telemetryTopic: Type String, required.
+
+            commandTopic: Type String, required.
+
+            credentials: An object to store authentication details (e.g., username, password) for the MQTT broker.
+
+            schema: An array of objects to store data key aliases (e.g., [{ key: 'rpm', displayName: 'Motor Speed' }]).
+
+            controls: An array of objects to store user-configured control widgets.
+
+    3.1.2: Registration Logic:
+
+        Create an Express route handler for POST /api/devices. This endpoint will be protected by the JWT middleware.
+
+        The controller will automatically generate a unique deviceId, MQTT topics, and credentials.
+
+        It will create a new Device document with this generated information and the user-provided deviceType and group, then save it to MongoDB.
+
+    3.1.3: Device Listing Endpoints:
+
+        Create Express route handlers for GET /api/devices and GET /api/devices/:id.
+
+        These endpoints will be protected and will always filter by the user ID from the JWT to ensure users can only see their own devices.
+
+Checklist:
+
+    [ ] Define and create device.model.js with the comprehensive Mongoose schema.
+
+    [ ] Create device.controller.js to house the device management logic.
+
+    [ ] Create device.routes.js to define the /api/devices endpoints.
+
+    [ ] Implement the device registration logic, including the generation of unique credentials and topics.
+
+    [ ] Implement the GET endpoints for listing all devices and a single device, ensuring they are scoped to the authenticated user.
+
+Sub-Module 3.2: Dynamic Schema Service
+Function:
+
+This sub-module is responsible for making the platform "smart" about the data it receives. It automatically discovers what kind of data a device is sending and provides a way for the user to make that data more human-readable.
+What Has to Be Done:
+
+    3.2.1: Schema Discovery Logic:
+
+        Create a service that listens for the global new-data event emitted by Module 2.
+
+        When a message is received from a device for the first time, this service will inspect the keys of the payload object.
+
+        It will then update that device's document in MongoDB, populating the schema array with the discovered keys and setting their displayName to the key name by default.
+
+    3.2.2: Schema Management Endpoint:
+
+        Create an Express route handler for PATCH /api/devices/:id/schema.
+
+        This endpoint will accept an updated schema array from the frontend.
+
+        The controller will find the corresponding device and update its schema field in MongoDB, allowing users to change the display names for their data keys.
+
+Checklist:
+
+    [ ] Create a listener for the new-data global event.
+
+    [ ] Implement the logic to check if a device's schema is already populated to prevent overwrites.
+
+    [ ] Implement the logic to discover keys and populate the schema field on the device document.
+
+    [ ] Implement the PATCH /api/devices/:id/schema endpoint and its corresponding controller logic.
+
+    [ ] Ensure the endpoint validates that the user making the request is the owner of the device.
+
+Sub-Module 3.3: Device Control Service
+Function:
+
+This sub-module bridges the gap between the user's actions on the website and the physical device. It manages the configuration of control widgets and is responsible for publishing commands to devices.
+What Has to Be Done:
+
+    3.3.1: Control Configuration Endpoints:
+
+        Create route handlers for POST /api/devices/:id/controls (to add a new control) and PUT /api/devices/:id/controls/:controlId (to update an existing one).
+
+        These endpoints will receive the configuration for a control widget (e.g., type: 'slider', label: 'Speed', commandKey: 'setSpeed', min: 0, max: 3000) from the frontend.
+
+        The controller will update the controls array within the specified device's document in MongoDB.
+
+    3.3.2: Command Publishing Logic:
+
+        This service will listen for incoming messages on the WebSocket connection (managed by Module 2). These messages will be initiated by the user interacting with a control widget on the frontend.
+
+        Upon receiving a command message (e.g., { deviceId: '...', commandKey: 'setSpeed', value: 1500 }), this service will:
+
+            Look up the device in MongoDB to get its commandTopic.
+
+            Construct the appropriate JSON command payload.
+
+            Use an internal MQTT client to publish this command to the device's unique commandTopic.
+
+Checklist:
+
+    [ ] Implement the POST and PUT endpoints for managing control widget configurations.
+
+    [ ] Ensure these endpoints are protected and scoped to the device owner.
+
+    [ ] Create a WebSocket event listener for incoming device commands from the frontend.
+
+    [ ] Implement the logic to look up the device's command topic.
+
+    [ ] Create an internal MQTT client specifically for publishing commands.
+
+    [ ] Implement the command publishing logic.

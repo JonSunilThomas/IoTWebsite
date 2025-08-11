@@ -1,0 +1,177 @@
+Project Functionality Checklist
+
+1. User & Session Management
+
+    [ ] User Authentication:
+
+        [ ] User login page with username/password fields.
+
+        [ ] User registration capability.
+
+        [ ] Secure password hashing on the backend.
+
+    [ ] Session Management (JWT):
+
+        [ ] Generate a signed JWT upon successful login.
+
+        [ ] Store the JWT securely on the frontend.
+
+        [ ] Send the JWT in the authorization header for all protected API requests.
+
+        [ ] Implement JWT validation middleware on the backend.
+
+        [ ] User logout functionality (clears the token from the frontend).
+
+2. Device Management & Onboarding
+
+    [ ] Device Registration (UI):
+
+        [ ] A dedicated "Add New Device" button/form.
+
+        [ ] Dropdown menu for user to select deviceType.
+
+        [ ] Dropdown/selector to assign the new device to a group.
+
+    [ ] Device Registration (Backend):
+
+        [ ] POST /api/devices endpoint to handle new device creation.
+
+        [ ] Automatic generation of a universally unique deviceId.
+
+        [ ] Automatic generation of MQTT telemetryTopic and commandTopic.
+
+        [ ] Save the new device document (with ID, topics, type, group) to MongoDB.
+
+    [ ] Credential Provisioning:
+
+        [ ] Display the generated deviceId and topics on the UI for the user to copy.
+
+3. Data Pipeline & Real-time Communication
+
+    [ ] Device-Side Logic:
+
+        [ ] Construct data payloads in the standard JSON format.
+
+        [ ] Include a precise timestamp with every message.
+
+        [ ] Publish telemetry data to the correct telemetryTopic over a secure mqtts:// connection.
+
+        [ ] Configure MQTT Last Will and Testament (LWT) to report disconnections.
+
+        [ ] Offline Buffering:
+
+            [ ] Implement a local queue to store data points if the connection is lost.
+
+            [ ] On reconnection, send all queued data points as a batch array.
+
+    [ ] Backend-Side Logic (Node.js):
+
+        [ ] MQTT broker setup with topic-level authorization.
+
+        [ ] Subscribe to all device telemetry topics (devices/+/data).
+
+        [ ] Handle incoming single JSON objects.
+
+        [ ] Handle incoming arrays of JSON objects (for batch uploads).
+
+        [ ] Save all telemetry data to the MongoDB telemetry collection.
+
+        [ ] Set up WebSocket (Socket.IO) server.
+
+        [ ] Push all new, incoming data to connected frontend clients via WebSockets.
+
+4. Frontend Dashboard & Visualization (React)
+
+    [ ] Main Dashboard View:
+
+        [ ] Display a list of all user-defined groups.
+
+        [ ] Within each group, display a list of all associated devices.
+
+        [ ] Real-time status indicator for each device (e.g., green for "Connected," red for "Disconnected").
+
+    [ ] Device Detail View:
+
+        [ ] On first load for a new device, display a "Waiting for data..." message.
+
+        [ ] Fetch the latest data to discover all keys in the payload.
+
+        [ ] Dynamic Widget Rendering: Automatically create a chart/gauge for each discovered data key.
+
+    [ ] Historical Data Analysis:
+
+        [ ] UI with a date/time range selector.
+
+        [ ] API call to fetch historical data for a specific device and time range.
+
+        [ ] Render the historical data on a chart.
+
+5. Dynamic Schema & Control Configuration
+
+    [ ] Schema Management (Backend):
+
+        [ ] Auto-populate a schema field in the device's MongoDB document on first data receipt.
+
+        [ ] PATCH /api/devices/{id} endpoint to update the schema.
+
+    [ ] Schema Management (Frontend):
+
+        [ ] A "Settings" page for each device.
+
+        [ ] UI to list all discovered data keys and their current displayName.
+
+        [ ] Input fields to allow the user to edit the displayName for each key.
+
+    [ ] Control Widget Configuration:
+
+        [ ] A dashboard "Edit Mode" toggle.
+
+        [ ] Form to add a new control widget (Button, Slider, etc.).
+
+        [ ] Inputs to define the widget's label and the command message it sends.
+
+        [ ] Save the control widget's configuration to the device's document in MongoDB.
+
+    [ ] Device Control Execution:
+
+        [ ] On widget interaction (e.g., button click), send the command to the backend via WebSocket.
+
+        [ ] Backend publishes the corresponding command to the device's commandTopic.
+
+6. AI Engine & Analytics
+
+    [ ] Core AI Models:
+
+        [ ] Train and deploy an Anomaly Detection model.
+
+        [ ] Train and deploy a Predictive Maintenance model.
+
+        [ ] Train and deploy an Efficiency Recommendation model.
+
+    [ ] Integration:
+
+        [ ] Backend logic to send data to the deployed AI models for inference.
+
+        [ ] On-screen notifications system in the React UI to display alerts.
+
+        [ ] Make notifications clickable, navigating the user to the relevant device/data.
+
+7. Security Framework
+
+    [ ] Encryption:
+
+        [ ] Enforce TLS/SSL for all HTTP traffic.
+
+        [ ] Enforce TLS/SSL for all MQTT traffic.
+
+    [ ] Access Control:
+
+        [ ] API endpoints protected by JWT authentication middleware.
+
+        [ ] MQTT broker configured to enforce topic-level permissions.
+
+    [ ] Secure Configuration:
+
+        [ ] Use of .env files for all secrets (database strings, JWT secret, etc.).
+
+        [ ] Backend input validation and sanitization to prevent injection attacks.

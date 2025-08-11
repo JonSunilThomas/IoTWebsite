@@ -1,0 +1,125 @@
+Module 2: Real-time Data Pipeline
+Overall Function:
+
+This module is the central nervous system for all real-time IoT data. Its sole responsibility is to manage the live data stream from the physical devices to the user's screen. It listens for incoming device data, processes it, saves it for historical analysis, and pushes it out for live visualization. This module operates independently of the user-facing API and does not handle any direct HTTP requests.
+Sub-Module 2.1: MQTT Broker & Listener
+Function:
+
+This sub-module acts as the secure receiving dock for all IoT devices. It establishes a dedicated communication server (an MQTT Broker) that devices connect to. It is responsible for authenticating these devices and ensuring they can only send and receive data on their authorized channels.
+What Has to Be Done:
+
+    2.1.1: MQTT Server Setup:
+
+        Set up a standalone MQTT broker within the Node.js application using a library like Aedes. This broker will listen for incoming device connections on a specific port.
+
+    2.1.2: Secure Connection:
+
+        Configure the broker to only accept secure connections over TLS (Transport Layer Security). This turns the connection protocol from mqtt:// to mqtts://, encrypting all data in transit. This requires generating or providing SSL/TLS certificates.
+
+    2.1.3: Authentication & Authorization:
+
+        Implement an authenticate handler for the broker. When a device tries to connect, this function will take its provided username and password (which are part of its unique credentials) and look up the deviceId in the MongoDB devices collection to verify its existence and credentials.
+
+        Implement an authorizePublish and authorizeSubscribe handler. These functions check if a successfully authenticated device is allowed to publish or subscribe to a specific topic, preventing devices from interfering with each other.
+
+    2.1.4: LWT Handler:
+
+        The broker must be configured to handle Last Will and Testament (LWT) messages. When a device disconnects ungracefully, the broker will automatically publish the device's pre-defined "offline" message to its status topic. This sub-module will listen for these messages to trigger a status update.
+
+Checklist:
+
+    [ ] Install aedes and tls libraries (npm install aedes tls).
+
+    [ ] Generate self-signed SSL certificates for development or configure production certificates.
+
+    [ ] Create mqtt.server.js to initialize and configure the Aedes broker with TLS.
+
+    [ ] Implement the authenticate handler function, which will query the MongoDB devices collection.
+
+    [ ] Implement the authorizePublish and authorizeSubscribe handler functions.
+
+    [ ] Set up a listener for client disconnections and LWT messages.
+
+Sub-Module 2.2: Data Processing & Storage Service
+Function:
+
+This sub-module is the central processing unit for incoming data. It subscribes to the MQTT broker, catches all valid telemetry messages, processes them, and passes them to the correct services for storage and live broadcasting.
+What Has to Be Done:
+
+    2.2.1: Telemetry Subscriber:
+
+        Create an internal MQTT client within the Node.js application that connects to the local MQTT broker (from sub-module 2.1).
+
+        This client will subscribe to the wildcard topic devices/+/data to receive telemetry from all devices.
+
+    2.2.2: Payload Parser:
+
+        Create a function that handles the message event from the subscriber.
+
+        This function must be designed to parse the incoming message payload and intelligently determine if it's a single JSON object or an array of objects (for batch uploads from offline devices).
+
+    2.2.3: Database Service:
+
+        Create a dedicated service file (e.g., database.service.js) that handles all interactions with MongoDB.
+
+        Implement a saveTelemetry(data) function. This function will take the parsed data (single or array) and use Mongoose's insertMany() for efficient bulk saving to the telemetry collection.
+
+        Implement an updateDeviceStatus(deviceId, status) function to change a device's connected state in the devices collection.
+
+    2.2.4: Inter-Module Communication (Event Emitter):
+
+        Use Node.js's built-in EventEmitter. After successfully saving data to the database, this service will emit a global event, such as eventEmitter.emit('new-data', parsedData). This decouples the data processing from other modules that need to react to new data.
+
+Checklist:
+
+    [ ] Create an internal MQTT client and subscribe to the telemetry topic.
+
+    [ ] Implement the payload parsing logic to handle both single and array payloads.
+
+    [ ] Create the database service file with the saveTelemetry and updateDeviceStatus functions.
+
+    [ ] Set up a global event emitter instance (events.js).
+
+    [ ] Emit the new-data event after every successful database write.
+
+    [ ] Emit a status-update event when LWT messages are handled.
+
+Sub-Module 2.3: WebSocket Push Service
+Function:
+
+This sub-module is the live broadcasting station. It manages connections from the frontend web application and its primary job is to push new data to the correct user's browser in real-time as soon as it's processed.
+What Has to Be Done:
+
+    2.3.1: WebSocket Server Setup:
+
+        Integrate a WebSocket server with the main Express server using the socket.io library.
+
+    2.3.2: User Authentication:
+
+        Implement a socket.io middleware to authenticate new WebSocket connections.
+
+        This middleware will inspect the handshake for the same JWT used by the main API (Module 1). Upon successful verification, it will associate the WebSocket connection (socket.id) with the userId.
+
+        It will also use the userId to have the socket "join" a private room named after the userId. This makes it easy to send a message to all of a single user's open browser tabs.
+
+    2.3.3: Real-time Data Broadcaster:
+
+        Create a listener for the global new-data event from the event emitter (from sub-module 2.2).
+
+        When this event is received, the service will look up which user owns the device from which the data came.
+
+        It will then use io.to(userId).emit('live-telemetry', data) to broadcast the new data only to the specific user who owns the device.
+
+Checklist:
+
+    [ ] Install socket.io (npm install socket.io).
+
+    [ ] Configure socket.io on the main Express server instance.
+
+    [ ] Implement the socket.io authentication middleware to verify JWTs.
+
+    [ ] Implement the logic for sockets to join user-specific rooms.
+
+    [ ] Create a listener for the new-data global event.
+
+    [ ] Implement the logic to look up the device owner and broadcast the data to the correct user's room.

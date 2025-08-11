@@ -1,0 +1,167 @@
+Module 1: Core API & User Management
+Overall Function:
+
+This module serves as the exclusive entry point for the frontend application. It manages user accounts, handles authentication, and provides the foundational HTTP API endpoints for all user-facing data interactions. It is the secure gateway between the user and the rest of the backend services.
+Sub-Module 1.1: Authentication Service
+Function:
+
+This sub-module is responsible for all aspects of user identity and security. It handles the creation of new user accounts, validates credentials for returning users, and manages user sessions through a token-based system.
+What Has to Be Done:
+
+    1.1.1: User Model & Schema:
+
+        Using the Mongoose library, define a userSchema. This schema will enforce the structure for user documents in MongoDB.
+
+        Fields:
+
+            username: Type String, required, unique, trim (to remove whitespace).
+
+            email: Type String, required, unique, lowercase.
+
+            password: Type String, required. This will store the hashed password.
+
+            createdAt: Type Date, default: Date.now.
+
+    1.1.2: Registration Endpoint:
+
+        Create an Express route handler for POST /auth/register.
+
+        It will receive username, email, and password in the request body.
+
+        Use the bcrypt.hash() function to generate a salt and hash the plain-text password.
+
+        Create a new User document with the provided details and the hashed password, then save it to MongoDB.
+
+    1.1.3: Login Endpoint:
+
+        Create an Express route handler for POST /auth/login.
+
+        Find the user in the database by their username or email.
+
+        If the user exists, use bcrypt.compare() to check if the provided password matches the stored hash.
+
+        If the password is correct, use the jsonwebtoken.sign() function to create a new JWT. The token's payload should include the user's ID (_id).
+
+    1.1.4: JWT Middleware:
+
+        Create a reusable Express middleware function (e.g., protect).
+
+        This function will read the Authorization header from the incoming request, expecting a Bearer {token} format.
+
+        It will use jsonwebtoken.verify() to validate the token's signature against the secret key stored on the server.
+
+        If valid, it will attach the user's information to the request object (e.g., req.user) and call next() to proceed. If invalid, it will send a 401 Unauthorized response.
+
+Checklist:
+
+    [ ] Define and create user.model.js with the Mongoose schema.
+
+    [ ] Install bcryptjs and jsonwebtoken libraries (npm install bcryptjs jsonwebtoken).
+
+    [ ] Create auth.controller.js to house the registration and login logic.
+
+    [ ] Create auth.routes.js to define the /register and /login endpoints.
+
+    [ ] Implement the password hashing logic in the registration controller.
+
+    [ ] Implement the password comparison and JWT signing logic in the login controller.
+
+    [ ] Create auth.middleware.js with the JWT verification logic.
+
+    [ ] Apply the protect middleware to all necessary routes.
+
+Sub-Module 1.2: API Gateway & Routing
+Function:
+
+This sub-module structures, organizes, and protects the entire API. It acts as a central hub that directs traffic, validates incoming data, and handles errors gracefully, ensuring the stability and security of the server.
+What Has to Be Done:
+
+    1.2.1: Main Router Setup:
+
+        In the main server file (server.js or app.js), import all the modular route files (e.g., auth.routes.js, group.routes.js).
+
+        Use app.use() to mount each router to a specific base path (e.g., app.use('/auth', authRoutes)). This keeps the API organized.
+
+    1.2.2: Request Validation:
+
+        Use a library like express-validator. For each route that accepts user input, define a chain of validation rules.
+
+        For example, for the registration route, you would add body('email').isEmail(), body('password').isLength({ min: 8 }).
+
+        Create a separate middleware to check for validation errors and return a 400 Bad Request response if any rules fail.
+
+    1.2.3: Global Error Handling:
+
+        At the very end of your middleware chain in server.js, create a final app.use((err, req, res, next) => { ... }).
+
+        This function will catch any errors passed via next(error) from anywhere in the application.
+
+        It will inspect the error and send back a structured JSON response with an appropriate status code and message, ensuring the server never crashes due to an unhandled exception.
+
+    1.2.4: API Rate Limiting:
+
+        Use the express-rate-limit library.
+
+        Apply it as a global middleware in server.js.
+
+        Configure the windowMs (the time window, e.g., 15 minutes) and max (the max number of requests per window per IP).
+
+Checklist:
+
+    [ ] Create a /routes directory to store all modular route files.
+
+    [ ] Configure the main server.js to use the modular routers.
+
+    [ ] Install express-validator (npm install express-validator).
+
+    [ ] Add validation chains to the auth.routes.js file.
+
+    [ ] Implement the global error handling middleware in server.js.
+
+    [ ] Install express-rate-limit (npm install express-rate-limit).
+
+    [ ] Apply the rate-limiting middleware to the application.
+
+Sub-Module 1.3: User Profile & Group Management Service
+Function:
+
+This sub-module manages user-specific data and organizational structures. It provides the API endpoints for users to interact with their own profile and to manage the "groups" they use to organize their IoT devices.
+What Has to Be Done:
+
+    1.3.1: User Profile Endpoint:
+
+        Create a route GET /api/users/me in a new user.routes.js file.
+
+        Apply the protect middleware from Sub-Module 1.1 to this route.
+
+        The controller for this route will use the req.user.id (attached by the middleware) to find the user's document in MongoDB and return it, making sure to exclude the password field from the response.
+
+    1.3.2: Group CRUD Endpoints:
+
+        Define a groupSchema in a group.model.js file. It should contain fields like name (Type String) and user (Type mongoose.Schema.Types.ObjectId, ref: 'User'). This user field links the group to its owner.
+
+        Create a full set of CRUD routes in group.routes.js (GET /, POST /, PUT /:id, DELETE /:id).
+
+        Apply the protect middleware to all these routes.
+
+        In each controller function, ensure that any database query also filters by the user ID from req.user.id. This is critical for security, as it prevents a user from accessing or modifying another user's groups.
+
+Checklist:
+
+    [ ] Create user.routes.js and user.controller.js.
+
+    [ ] Implement the GET /api/users/me endpoint.
+
+    [ ] Create group.model.js with the Mongoose schema for groups.
+
+    [ ] Create group.routes.js and group.controller.js.
+
+    [ ] Implement the POST /api/groups endpoint.
+
+    [ ] Implement the GET /api/groups endpoint.
+
+    [ ] Implement the PUT /api/groups/:id endpoint.
+
+    [ ] Implement the DELETE /api/groups/:id endpoint.
+
+    [ ] Ensure all group operations are scoped to the authenticated user.

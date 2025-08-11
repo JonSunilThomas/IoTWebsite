@@ -1,0 +1,190 @@
+Modular Backend Development Plan
+
+This document outlines a highly modular architecture for the IoT platform's backend, designed to be developed in parallel by a team of four. The backend is divided into four independent modules, each with its own set of responsibilities, sub-modules, and tasks.
+Module 1: Core API & User Management
+
+Lead Developer: Developer A
+Core Responsibility: To handle all standard HTTP requests from the frontend, manage user identity, authentication, and provide foundational API services. This module is the primary gateway for the user's browser.
+Sub-Module 1.1: Authentication Service
+
+    1.1.1: User Model & Schema: Define the User schema in Mongoose (username, hashed password, etc.).
+
+    1.1.2: Registration Endpoint: Create POST /auth/register to handle new user creation, including password hashing (using bcrypt).
+
+    1.1.3: Login Endpoint: Create POST /auth/login to validate credentials and generate a signed JWT.
+
+    1.1.4: JWT Middleware: Develop Express middleware to protect routes by validating the JWT sent in request headers.
+
+Sub-Module 1.2: API Gateway & Routing
+
+    1.2.1: Main Router Setup: Configure the primary Express router to direct traffic to the correct modules.
+
+    1.2.2: Request Validation: Implement middleware (using a library like Joi or express-validator) to validate and sanitize incoming request bodies and parameters.
+
+    1.2.3: Global Error Handling: Create a centralized error handling mechanism to catch and format all server errors into a consistent JSON response.
+
+    1.2.4: API Rate Limiting: Implement basic rate limiting to prevent abuse of the API endpoints.
+
+Sub-Module 1.3: User Profile & Group Management Service
+
+    1.3.1: User Profile Endpoint: Create GET /api/users/me to fetch the profile of the currently logged-in user.
+
+    1.3.2: Group CRUD Endpoints:
+
+        POST /api/groups: Create a new device group for a user.
+
+        GET /api/groups: List all groups belonging to the user.
+
+        PUT /api/groups/{id}: Update a group's name.
+
+        DELETE /api/groups/{id}: Delete a group.
+
+Module 2: Real-time Data Pipeline
+
+Lead Developer: Developer B
+Core Responsibility: To manage the entire real-time data flow. This includes listening for data from IoT devices via MQTT, processing it, storing it, and pushing live updates to the frontend via WebSockets. This module does not have any HTTP endpoints.
+Sub-Module 2.1: MQTT Broker & Listener
+
+    2.1.1: MQTT Server Setup: Configure and run an MQTT broker (using a library like Aedes or Mosca).
+
+    2.1.2: Secure Connection: Enforce mqtts:// (MQTT over TLS) for all device connections.
+
+    2.1.3: Authentication & Authorization:
+
+        Implement logic to authenticate connecting devices against the devices collection in MongoDB.
+
+        Implement logic to authorize publish/subscribe actions on a per-device topic basis.
+
+    2.1.4: LWT Handler: Implement logic to handle MQTT Last Will and Testament messages to update device connection status.
+
+Sub-Module 2.2: Data Processing & Storage Service
+
+    2.2.1: Telemetry Subscriber: Create a service that subscribes to the main telemetry topic (devices/+/data).
+
+    2.2.2: Payload Parser: Develop a robust parser that can handle both single data objects and batch arrays (for offline data).
+
+    2.2.3: Database Service:
+
+        Create a dedicated service for all database interactions.
+
+        Implement a saveTelemetry function that performs a bulk insert of telemetry data into MongoDB.
+
+        Implement an updateDeviceStatus function.
+
+    2.2.4: Inter-Module Communication (Event Emitter):
+
+        After saving data, this service will emit a standardized event (e.g., eventEmitter.emit('new-data', data)). This is the contract for other modules to listen to.
+
+Sub-Module 2.3: WebSocket Push Service
+
+    2.3.1: WebSocket Server Setup: Configure and run a WebSocket server (using Socket.IO).
+
+    2.3.2: User Authentication: Implement logic to associate a connected WebSocket client with a logged-in user ID.
+
+    2.3.3: Real-time Data Broadcaster:
+
+        Listen for the new-data event from the event emitter.
+
+        When the event is received, find the appropriate user's WebSocket connection and push the new data to their browser.
+
+Module 3: Device & Configuration Management
+
+Lead Developer: Developer C
+Core Responsibility: To handle the lifecycle of a device, including its registration, schema management, and the configuration of its controls. This module exposes its functionality via HTTP endpoints consumed by Module 1.
+Sub-Module 3.1: Device Provisioning Service
+
+    3.1.1: Device Model & Schema: Define the Device schema in Mongoose (including deviceId, deviceType, group, schema, controls, topics, etc.).
+
+    3.1.2: Registration Logic:
+
+        Create POST /api/devices endpoint.
+
+        Implement the core logic for generating a unique deviceId and MQTT topics.
+
+        Save the new device document to MongoDB.
+
+    3.1.3: Device Listing Endpoints:
+
+        GET /api/devices: Get all devices for a user.
+
+        GET /api/devices?group={groupId}: Filter devices by group.
+
+        GET /api/devices/{id}: Get details for a single device.
+
+Sub-Module 3.2: Dynamic Schema Service
+
+    3.2.1: Schema Discovery Logic:
+
+        Listen for the new-data event from the event emitter.
+
+        On first data receipt for a device, inspect the payload keys and automatically populate the schema field in its MongoDB document.
+
+    3.2.2: Schema Management Endpoint:
+
+        Create PATCH /api/devices/{id}/schema endpoint.
+
+        This endpoint will allow updating the displayName aliases for data keys.
+
+Sub-Module 3.3: Device Control Service
+
+    3.3.1: Control Configuration Endpoint:
+
+        Create POST /api/devices/{id}/controls to add a new control widget configuration to a device.
+
+        Create PUT /api/devices/{id}/controls/{controlId} to update a control.
+
+    3.3.2: Command Publishing Logic:
+
+        Create a WebSocket listener that receives command requests from the frontend.
+
+        Upon receiving a command, this service will use an MQTT client to publish the correctly formatted JSON command to the device's commandTopic.
+
+Module 4: Analytics & AI Integration
+
+Lead Developer: Developer D
+Core Responsibility: To provide all data analysis capabilities. This module fetches historical data for analysis, communicates with external AI services, and generates insights.
+Sub-Module 4.1: Historical Data Service
+
+    4.1.1: Telemetry Query Endpoint:
+
+        Create GET /api/telemetry/{deviceId}.
+
+        Implement query logic to fetch historical data from MongoDB based on a specified time range.
+
+        Ensure the database is properly indexed (deviceId, timestamp) for performance.
+
+    4.1.2: Data Aggregation API:
+
+        Create endpoints for aggregated data (e.g., GET /api/telemetry/{deviceId}/summary?period=24h).
+
+        Implement aggregation pipelines in MongoDB to calculate averages, min/max, etc., on the server side to reduce payload size.
+
+Sub-Module 4.2: AI Service Interface
+
+    4.2.1: AI Model Connector:
+
+        Create a service to handle all communication with the deployed AI models (e.g., Amazon SageMaker).
+
+        This service will use an HTTP client (axios) to send data to the AI model's API endpoint.
+
+    4.2.2: Real-time Anomaly Detection:
+
+        Listen for the new-data event from the event emitter.
+
+        For each new data point, send it to the Anomaly Detection model.
+
+        If an anomaly is returned, emit a new internal event: eventEmitter.emit('anomaly-detected', data).
+
+    4.2.3: On-Demand Analysis:
+
+        Create POST /api/analysis/{deviceId} endpoint that triggers a deeper analysis (e.g., predictive maintenance) on a device's recent history.
+
+Sub-Module 4.3: Notification & Alerting Service
+
+    4.3.1: Alert Listener:
+
+        Listen for the anomaly-detected event.
+
+    4.3.2: Notification Broadcaster:
+
+        When an alert event is received, this service will use the WebSocket server (from Module 2) to push a formatted notification to the specific user's browser.
