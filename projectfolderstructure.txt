@@ -1,0 +1,123 @@
+Combined Project Folder Structure
+
+This document outlines the complete, unified folder structure for the entire project, encompassing both the backend and frontend applications. This "monorepo" structure is designed to keep both parts of the project in a single repository for easier management and development.
+Project Root Directory
+
+The top-level directory will separate the backend and frontend into their own distinct folders.
+
+/iot-platform-project/
+├── backend/
+├── frontend/
+└── README.md
+
+Backend Folder Structure (/backend)
+
+This folder contains the complete Node.js application.
+
+/backend
+├── config/
+│   └── database.js
+├── middleware/
+│   ├── auth.middleware.js
+│   └── errorHandler.middleware.js
+├── models/
+│   ├── device.model.js
+│   ├── group.model.js
+│   └── user.model.js
+├── modules/
+│   ├── core-api/
+│   │   ├── auth/
+│   │   │   ├── auth.controller.js
+│   │   │   └── auth.routes.js
+│   │   ├── groups/
+│   │   │   ├── group.controller.js
+│   │   │   └── group.routes.js
+│   │   └── users/
+│   │       ├── user.controller.js
+│   │       └── user.routes.js
+│   ├── realtime/
+│   │   ├── mqtt/
+│   │   │   ├── mqtt.server.js
+│   │   │   └── mqtt.subscriber.js
+│   │   └── websocket/
+│   │       ├── websocket.handler.js
+│   │       └── websocket.server.js
+│   ├── device-management/
+│   │   ├── devices/
+│   │   │   ├── device.controller.js
+│   │   │   ├── device.routes.js
+│   │   │   └── device.service.js
+│   │   └── controls/
+│   │       ├── control.handler.js
+│   │       └── control.publisher.js
+│   └── analytics/
+│       ├── analysis/
+│       │   ├── analysis.controller.js
+│       │   └── analysis.routes.js
+│       ├── notifications/
+│       │   └── notification.handler.js
+│       └── telemetry/
+│           ├── telemetry.controller.js
+│           └── telemetry.routes.js
+├── services/
+│   └── ai.service.js
+├── utils/
+│   └── eventEmitter.js
+├── .env
+├── .gitignore
+├── app.js
+└── package.json
+
+Frontend Folder Structure (/frontend)
+
+This folder contains the complete React application.
+
+/frontend
+└── src/
+    ├── api/
+    │   └── api.js
+    ├── assets/
+    │   ├── images/
+    │   └── styles/
+    ├── components/
+    │   ├── Button.js
+    │   ├── Modal.js
+    │   └── Spinner.js
+    ├── context/
+    │   └── AuthContext.js
+    ├── hooks/
+    │   ├── useAuth.js
+    │   └── useWebSocket.js
+    ├── modules/
+    │   ├── auth/
+    │   │   ├── components/
+    │   │   │   └── AuthForm.js
+    │   │   ├── LoginPage.js
+    │   │   └── RegisterPage.js
+    │   ├── dashboard/
+    │   │   ├── components/
+    │   │   │   ├── ControlConfigurator.js
+    │   │   │   ├── ControlWidget.js
+    │   │   │   ├── DeviceListItem.js
+    │   │   │   ├── DynamicWidgetGrid.js
+    │   │   │   ├── Gauge.js
+    │   │   │   ├── Group.js
+    │   │   │   └── RealtimeChart.js
+    │   │   ├── pages/
+    │   │   │   ├── DashboardPage.js
+    │   │   │   ├── DeviceDetailPage.js
+    │   │   │   └── DeviceSettingsPage.js
+    │   │   └── hooks/
+    │   │       └── useDeviceData.js
+    │   └── analytics/
+    │       ├── components/
+    │       │   ├── AIInsightCard.js
+    │       │   └── DeviceComparisonChart.js
+    │       └── AnalyticsPage.js
+    ├── services/
+    │   └── socketService.js
+    ├── utils/
+    │   └── date.formatter.js
+    ├── App.js
+    └── index.js
+

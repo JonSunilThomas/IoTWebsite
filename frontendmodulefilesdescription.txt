@@ -1,0 +1,63 @@
+Root Directory Files (/src)
+
+These files provide the foundational logic and services for the entire application.
+
+    api/api.js: This is your central API handler. It will contain a pre-configured Axios instance. Its main job is to automatically add the user's authentication token (JWT) to the header of every single request sent to the backend, so you don't have to do it manually in every component.
+
+    context/AuthContext.js: This is your global user session manager. It uses React's Context API to hold the user's information and authentication status. Any component in the app can access this context to know if a user is logged in and who they are.
+
+    hooks/useAuth.js: A custom hook that provides a simple shortcut for components to access the AuthContext.
+
+    hooks/useWebSocket.js: A custom hook that will manage the real-time WebSocket connection logic for a component, including connecting, disconnecting, and listening for messages.
+
+    services/socketService.js: This is the core WebSocket manager. It is responsible for establishing and maintaining the single, persistent WebSocket connection to the backend server as soon as the user logs in.
+
+    App.js: This is the main component of your application. It sets up the application's structure, including the React Router (for handling different pages) and the global context providers (like AuthContext).
+
+    index.js: This is the entry point of your React application. Its only job is to render the App component into the HTML.
+
+Module 2: Authentication (/modules/auth/)
+
+These files are all related to getting the user logged in or registered.
+
+    LoginPage.js: This is the component for the /login page. It will display the login form and handle the logic for what happens when the user clicks the "Login" button.
+
+    RegisterPage.js: This is the component for the /register page. It displays the registration form and handles the submission logic.
+
+    components/AuthForm.js: This is a reusable UI component that contains the actual form fields (email, password) and button. Both LoginPage.js and RegisterPage.js will use this component to avoid writing the same form code twice.
+
+Module 3: Dashboard & Device Management (/modules/dashboard/)
+
+This is the core of the application where users interact with their devices.
+
+    pages/DashboardPage.js: This is the main /dashboard page. Its job is to fetch and display the list of device groups.
+
+    pages/DeviceDetailPage.js: This is the page for viewing a single device (/devices/:id). It's responsible for fetching that specific device's data and laying out the visualization widgets.
+
+    pages/DeviceSettingsPage.js: This is the page where a user can configure a device's settings, such as its data schema aliases and control widgets.
+
+    components/Group.js: This component's only job is to display a single group and the list of devices inside it.
+
+    components/DeviceListItem.js: A small component that displays a single device in a list, showing its name and status.
+
+    components/DynamicWidgetGrid.js: This is a "smart" component. It receives device data, looks at the keys in the data (e.g., "voltage", "temperature"), and automatically decides to render a RealtimeChart for voltage and a Gauge for temperature.
+
+    components/RealtimeChart.js: A reusable charting component that can display a line graph for both historical data and live data pushed from the WebSocket.
+
+    components/Gauge.js: A reusable component for displaying a single value, like a pressure or humidity reading.
+
+    components/ControlConfigurator.js: This is the form a user will interact with to create a new button or slider for their device.
+
+    components/ControlWidget.js: This component renders a single user-configured control (like a button or slider) and handles sending the command back to the server when it's used.
+
+    hooks/useDeviceData.js: A custom hook to simplify the logic of fetching and managing the state for a device's data within a component.
+
+Module 4: Analytics (/modules/analytics/)
+
+These files are for the data analysis and comparison features.
+
+    AnalyticsPage.js: This is the main component for the /analysis page. It contains the UI for selecting devices and date ranges.
+
+    components/DeviceComparisonChart.js: A specialized chart that is built to display data from multiple devices on the same timeline for easy comparison.
+
+    components/AIInsightCard.js: A UI component designed to display a single alert or recommendation received from the backend's AI engine.

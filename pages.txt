@@ -1,0 +1,99 @@
+1. Login Page
+
+    URL: /login
+
+    What it does: This page provides a form for existing users to enter their credentials and sign in to the application.
+
+    JavaScript Files Used:
+
+        modules/auth/LoginPage.js: This is the main component for the page. It orchestrates the display of the login form and handles the submission logic, calling the API service when the user clicks "Login".
+
+        modules/auth/components/AuthForm.js: This is a reusable UI component that contains the actual form fields (like email and password) and the submit button. It's used here to display the login form.
+
+        context/AuthContext.js: This global state manager is used to update the application's state with the user's information and token upon a successful login.
+
+        api/api.js: This service is used to make the actual POST request to the backend's /auth/login endpoint.
+
+2. Register Page
+
+    URL: /register
+
+    What it does: This page provides a form for new users to create an account.
+
+    JavaScript Files Used:
+
+        modules/auth/RegisterPage.js: This is the main component for the page. It manages the state and submission logic for the registration form.
+
+        modules/auth/components/AuthForm.js: The same reusable form component is used here to display the fields required for registration.
+
+        api/api.js: This service is used to make the POST request to the backend's /auth/register endpoint with the new user's details.
+
+3. Dashboard Page
+
+    URL: /dashboard
+
+    What it does: This is the main landing page after a user logs in. It displays a high-level overview of all their device groups and the devices within them.
+
+    JavaScript Files Used:
+
+        modules/dashboard/pages/DashboardPage.js: This is the primary component for this page. Its main responsibility is to fetch the list of groups and devices from the API and render them.
+
+        modules/dashboard/components/Group.js: This component is responsible for displaying a single group's title and rendering a list of the devices that belong to it.
+
+        modules/dashboard/components/DeviceListItem.js: This small component renders a single device in the list, showing its name and real-time status (e.g., connected/disconnected).
+
+        api/api.js: Used to make the initial GET requests to fetch the user's groups and devices.
+
+        services/socketService.js: This service is used to listen for real-time status updates from the backend to ensure the device status icons are always live.
+
+4. Device Detail Page
+
+    URL: /devices/:id (where :id is the unique ID of a device)
+
+    What it does: This page provides a deep dive into a single device, showing all its real-time data, historical charts, and user-configured controls.
+
+    JavaScript Files Used:
+
+        modules/dashboard/pages/DeviceDetailPage.js: The main component that fetches all data related to the specific device ID from the URL and orchestrates the layout of the page.
+
+        modules/dashboard/components/DynamicWidgetGrid.js: A "smart" component that automatically renders the correct visualization (e.g., a chart or a gauge) for each piece of data the device sends.
+
+        modules/dashboard/components/RealtimeChart.js: A reusable component used by the grid to display line charts for time-series data.
+
+        modules/dashboard/components/Gauge.js: A reusable component used by the grid to display single-value metrics.
+
+        modules/dashboard/components/ControlWidget.js: This component renders any user-configured controls (like buttons or sliders) for the device.
+
+        modules/dashboard/hooks/useDeviceData.js: A custom React hook to simplify the logic of fetching, managing, and updating the device's data within the page.
+
+        services/socketService.js: Used to receive live telemetry for the charts and to send commands from the control widgets.
+
+5. Device Settings Page
+
+    URL: /devices/:id/settings
+
+    What it does: This page allows a user to configure the settings for a specific device, such as editing data key names (aliases) and adding or modifying control widgets.
+
+    JavaScript Files Used:
+
+        modules/dashboard/pages/DeviceSettingsPage.js: The main component that renders the settings forms and handles saving the changes.
+
+        modules/dashboard/components/ControlConfigurator.js: This is the specific form component a user interacts with to define a new button or slider.
+
+        api/api.js: Used to make PATCH or POST requests to the backend to save the updated schema or control configurations.
+
+6. Analytics Page
+
+    URL: /analysis
+
+    What it does: This is a dedicated page for advanced data analysis, allowing users to compare historical data from multiple devices and view AI-generated insights.
+
+    JavaScript Files Used:
+
+        modules/analytics/AnalyticsPage.js: The main component for the page. It manages the state for device selection and date ranges.
+
+        modules/analytics/components/DeviceComparisonChart.js: A specialized chart component designed to fetch and display data from multiple devices on the same timeline.
+
+        modules/analytics/components/AIInsightCard.js: A UI component used to display a single formatted alert or recommendation received from the AI engine.
+
+        services/socketService.js: Used to listen for real-time alerts pushed from the backend's notification service.

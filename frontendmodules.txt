@@ -1,0 +1,90 @@
+Frontend Project Folder Structure (React)
+
+This document outlines the recommended folder and file structure for the React frontend application. The design is based on a modular, feature-first approach that aligns with the backend architecture.
+Root Directory Structure (/src)
+
+All of our development work will happen inside the /src directory created by create-react-app or Vite.
+
+/src
+├── api/
+├── assets/
+├── components/
+├── context/
+├── hooks/
+├── modules/
+├── services/
+├── utils/
+├── App.js
+└── index.js
+
+Explanation of Root Folders:
+
+    api/: This will contain your centralized API service. A file like api.js will export a pre-configured Axios instance that automatically attaches the user's JWT to every request.
+
+    assets/: For all static assets, such as images (logos, icons), fonts, and global CSS files.
+
+    components/: This is for shared, reusable UI components that are used across multiple modules. Think of these as your personal component library (e.g., Button.js, Modal.js, Spinner.js).
+
+    context/: Holds all React Context providers for global state management. Your AuthContext.js will live here.
+
+    hooks/: For custom React hooks that can be reused in different components (e.g., useAuth.js, useWebSocket.js).
+
+    modules/: This is the most important directory. It contains the components and logic for each of the four main frontend modules.
+
+    services/: For logic that isn't directly related to a component, like managing the WebSocket connection (socketService.js).
+
+    utils/: A folder for miscellaneous helper functions, like date formatters or validation helpers.
+
+    App.js: The root component of the application, where you will set up the router and global context providers.
+
+Detailed Module Structure
+
+Inside the /modules directory, we will create a folder for each of the four main frontend modules. This keeps feature-specific components, pages, and styles neatly organized.
+Module 1: Core & UI Infrastructure
+
+This module is conceptual and its parts are located in the root folders (/components/ui, /context, etc.). There is no /modules/core folder.
+Module 2: Authentication
+
+Path: /modules/auth/
+
+auth/
+├── components/
+│   └── AuthForm.js
+├── LoginPage.js
+└── RegisterPage.js
+
+    Logic: This module contains the page-level components for Login and Register. Any component that is shared only between these two pages (like AuthForm.js) lives in a local components folder inside the module.
+
+Module 3: Dashboard & Device Management
+
+Path: /modules/dashboard/
+
+dashboard/
+├── components/
+│   ├── ControlConfigurator.js
+│   ├── ControlWidget.js
+│   ├── DeviceListItem.js
+│   ├── DynamicWidgetGrid.js
+│   ├── Gauge.js
+│   ├── Group.js
+│   └── RealtimeChart.js
+├── pages/
+│   ├── DashboardPage.js
+│   ├── DeviceDetailPage.js
+│   └── DeviceSettingsPage.js
+└── hooks/
+    └── useDeviceData.js
+
+    Logic: This is the largest module. All components specific to displaying and managing devices are located here. We create a /pages sub-directory to clearly separate the main page components from the smaller, reusable components they are built from. Any custom hooks used only within this module are also kept locally.
+
+Module 4: Analytics
+
+Path: /modules/analytics/
+
+analytics/
+├── components/
+│   ├── AIInsightCard.js
+│   └── DeviceComparisonChart.js
+└── AnalyticsPage.js
+
+    Logic: This follows the same pattern. The main page component lives at the root of the module, and the specialized components it uses are organized into a local components folder.
