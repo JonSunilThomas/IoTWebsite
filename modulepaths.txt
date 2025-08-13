@@ -1,0 +1,99 @@
+Backend Project Folder Structure
+
+This document outlines the recommended folder and file structure for the backend application. The design follows the principle of "separation of concerns," where code is organized by its function first, and then by the feature or module it belongs to.
+Root Directory Structure
+
+At the top level of your project, you will have the following directories and files:
+
+/
+├── config/
+├── middleware/
+├── models/
+├── modules/
+├── services/
+├── utils/
+├── .env
+├── .gitignore
+├── app.js
+└── package.json
+
+Explanation of Root Folders:
+
+    config/: Contains all project configuration files. This is where you'll put your database connection setup (database.js) and manage environment variables.
+
+    middleware/: Holds all shared Express middleware. The JWT protect middleware and the global errorHandler will live here.
+
+    models/: Contains all Mongoose schemas for your MongoDB collections. Keeping all data models in one place provides a clear overview of your database structure.
+
+    modules/: This is the most important directory. It contains the core logic for each of the four main modules, with each module in its own sub-folder.
+
+    services/: For complex business logic that is shared across multiple modules. For example, the service that connects to the external AI API would go here.
+
+    utils/: A folder for helper functions and shared utilities that don't fit anywhere else, like the global eventEmitter.
+
+    app.js: The main entry point of your application. It initializes the Express server, mounts all the middleware, and connects the modular routers.
+
+Detailed Module Structure
+
+Inside the /modules directory, we will create a folder for each of the four main modules. This allows each developer to work within their assigned folder with minimal risk of conflicting with others.
+Module 1: Core API & User Management
+
+Path: /modules/core-api/
+
+core-api/
+├── auth/
+│   ├── auth.controller.js
+│   └── auth.routes.js
+├── groups/
+│   ├── group.controller.js
+│   └── group.routes.js
+└── users/
+    ├── user.controller.js
+    └── user.routes.js
+
+    Logic: Each feature (auth, groups, users) has its own folder containing its controller (the business logic) and its routes (the API endpoint definitions).
+
+Module 2: Real-time Data Pipeline
+
+Path: /modules/realtime/
+
+realtime/
+├── mqtt/
+│   ├── mqtt.server.js      # Broker setup, auth, authz
+│   └── mqtt.subscriber.js  # Internal client that listens for data
+└── websocket/
+    ├── websocket.handler.js  # Logic for broadcasting data
+    └── websocket.server.js   # Socket.IO setup and auth
+
+    Logic: This module is organized by technology. The mqtt folder contains everything related to the MQTT broker, and the websocket folder contains everything related to the Socket.IO server.
+
+Module 3: Device & Configuration Management
+
+Path: /modules/device-management/
+
+device-management/
+├── devices/
+│   ├── device.controller.js
+│   ├── device.routes.js
+│   └── device.service.js     # Schema discovery logic
+└── controls/
+    ├── control.handler.js    # WebSocket listener for commands
+    └── control.publisher.js  # MQTT client to send commands
+
+    Logic: The primary feature, devices, gets its own controller and routes for the API part. The device.service.js is added here to contain the specific logic for schema discovery. The controls feature is handled separately as it primarily interacts with WebSockets and MQTT, not standard HTTP APIs.
+
+Module 4: Analytics & AI Integration
+
+Path: /modules/analytics/
+
+analytics/
+├── analysis/
+│   ├── analysis.controller.js
+│   └── analysis.routes.js
+├── notifications/
+│   └── notification.handler.js # Listens for events and pushes alerts
+└── telemetry/
+    ├── telemetry.controller.js
+    └── telemetry.routes.js
+
+    Logic: This follows the standard API structure. The telemetry folder handles fetching historical data, while the analysis folder handles triggering on-demand AI analysis. The notification.handler.js is a background service that listens for internal events and is placed in its own folder.
