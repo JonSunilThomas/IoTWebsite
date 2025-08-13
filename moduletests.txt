@@ -1,0 +1,133 @@
+Module 1: Core API & User Management
+
+Sub-Module 1.1: Authentication Service
+
+    [ ] PASS/FAIL: Register a new user with valid, unique credentials.
+
+    [ ] PASS/FAIL: Attempt to register a user with a username that already exists.
+
+    [ ] PASS/FAIL: Attempt to register a user with an email that already exists.
+
+    [ ] PASS/FAIL: Log in with correct credentials and receive a valid JWT.
+
+    [ ] PASS/FAIL: Attempt to log in with an incorrect password.
+
+    [ ] PASS/FAIL: Attempt to log in with a non-existent username.
+
+    [ ] PASS/FAIL: Access a protected route with a valid JWT.
+
+    [ ] PASS/FAIL: Attempt to access a protected route with an invalid or expired JWT.
+
+    [ ] PASS/FAIL: Attempt to access a protected route with no JWT.
+
+Sub-Module 1.2: API Gateway & Routing
+
+    [ ] PASS/FAIL: Send a request with invalid data (e.g., bad email format) and receive a 400 Bad Request error.
+
+    [ ] PASS/FAIL: Send a request missing a required field and receive a 400 Bad Request error.
+
+    [ ] PASS/FAIL: Force an internal server error and verify the server returns a structured JSON error message, not a crash log.
+
+    [ ] PASS/FAIL: Exceed the API request limit and verify a 429 Too Many Requests error is returned.
+
+Sub-Module 1.3: User Profile & Group Management Service
+
+    [ ] PASS/FAIL: Fetch the current user's profile information.
+
+    [ ] PASS/FAIL: Create a new device group.
+
+    [ ] PASS/FAIL: List all groups belonging to the authenticated user.
+
+    [ ] PASS/FAIL: Update the name of an existing group.
+
+    [ ] PASS/FAIL: Delete an existing group.
+
+    [ ] PASS/FAIL: As "User A," attempt to read, update, or delete a group belonging to "User B" and verify it fails.
+
+Module 2: Real-time Data Pipeline
+
+Sub-Module 2.1: MQTT Broker & Listener
+
+    [ ] PASS/FAIL: Connect a device to the broker using mqtts:// with valid credentials.
+
+    [ ] PASS/FAIL: Attempt to connect with invalid device credentials.
+
+    [ ] PASS/FAIL: Attempt to connect using an insecure mqtt:// connection.
+
+    [ ] PASS/FAIL: As "device-01," successfully publish to devices/device-01/data.
+
+    [ ] PASS/FAIL: As "device-01," attempt to publish to devices/device-02/data and verify it's rejected.
+
+    [ ] PASS/FAIL: Simulate an abrupt device disconnection and verify its LWT "offline" message is published.
+
+Sub-Module 2.2: Data Processing & Storage Service
+
+    [ ] PASS/FAIL: Publish a single telemetry message and verify it's saved correctly in MongoDB.
+
+    [ ] PASS/FAIL: Publish a batch array of 5 telemetry messages and verify all 5 are saved.
+
+    [ ] PASS/FAIL: Publish a malformed JSON message and verify the system handles the error gracefully without crashing.
+
+    [ ] PASS/FAIL: Verify the internal new-data event is emitted after a successful database write.
+
+Sub-Module 2.3: WebSocket Push Service
+
+    [ ] PASS/FAIL: Establish a WebSocket connection from the frontend with a valid user JWT.
+
+    [ ] PASS/FAIL: Attempt to establish a WebSocket connection with an invalid JWT.
+
+    [ ] PASS/FAIL: Publish data from "device-01" and verify only its owner ("User A") receives the WebSocket push.
+
+    [ ] PASS/FAIL: Verify that a different logged-in user ("User B") does not receive the push for "device-01".
+
+Module 3: Device & Configuration Management
+
+Sub-Module 3.1: Device Provisioning Service
+
+    [ ] PASS/FAIL: Create a new device and verify the response contains a unique ID, topics, and credentials.
+
+    [ ] PASS/FAIL: List all devices and verify the list is correctly filtered for the authenticated user.
+
+    [ ] PASS/FAIL: Fetch a single device by its ID.
+
+    [ ] PASS/FAIL: As "User A," attempt to fetch a device owned by "User B" and verify it fails.
+
+Sub-Module 3.2: Dynamic Schema Service
+
+    [ ] PASS/FAIL: Publish the first-ever message from a new device and verify its schema field is auto-populated in MongoDB.
+
+    [ ] PASS/FAIL: Publish a second message and verify the schema field is not overwritten.
+
+    [ ] PASS/FAIL: Update the displayName for a schema key via the API and verify the change in the database.
+
+Sub-Module 3.3: Device Control Service
+
+    [ ] PASS/FAIL: Add a new control configuration (e.g., a slider) to a device via the API.
+
+    [ ] PASS/FAIL: Update an existing control configuration.
+
+    [ ] PASS/FAIL: Send a command via WebSocket and verify the correctly formatted message is published to the device's MQTT command topic.
+
+Module 4: Analytics & AI Integration
+
+Sub-Module 4.1: Historical Data Service
+
+    [ ] PASS/FAIL: Fetch historical data using a specific start and end timestamp.
+
+    [ ] PASS/FAIL: Fetch historical data using a relative range (e.g., "last 24 hours").
+
+    [ ] PASS/FAIL: Fetch a data summary (avg, min, max) and verify the calculations are correct.
+
+Sub-Module 4.2: AI Service Interface
+
+    [ ] PASS/FAIL: Send a telemetry message and verify the system makes an API call to the external AI service.
+
+    [ ] PASS/FAIL: Trigger the on-demand analysis and verify it fetches historical data before calling the AI service.
+
+    [ ] PASS/FAIL: Simulate an error response from the AI service and verify the backend handles it without crashing.
+
+Sub-Module 4.3: Notification & Alerting Service
+
+    [ ] PASS/FAIL: Manually trigger an anomaly-detected event and verify a formatted notification is created.
+
+    [ ] PASS/FAIL: Verify the notification is broadcast only to the correct user's WebSocket room.
